@@ -28,14 +28,25 @@ class DatabaseHelper {
   
   static Future<void> _onCreate(Database db, int version) async {
     await db.execute('''
-      CREATE TABLE screenshots (
-        id TEXT PRIMARY KEY,
-        path TEXT NOT NULL,
-        text_content TEXT,
-        created_date INTEGER,
-        modified_date INTEGER,
-        indexed_date INTEGER
-      )
+    CREATE TABLE screenshots (
+    id TEXT PRIMARY KEY,
+    title TEXT NOT NULL,
+    path TEXT NOT NULL,
+    sub_type INTEGER,
+    type_int INTEGER,
+    duration INTEGER,
+    latitude REAL,
+    longitude REAL,
+    text_content TEXT,
+    width INTEGER,
+    height INTEGER,
+    orientation INTEGER DEFAULT 0,
+    is_favorite INTEGER DEFAULT 0,
+    relative_path TEXT,
+    mime_type TEXT,
+    created_date INTEGER,
+    modified_date INTEGER
+    )
     ''');
     
     // Create index for faster text search
@@ -67,7 +78,7 @@ class DatabaseHelper {
       'screenshots',
       where: 'text_content LIKE ?',
       whereArgs: ['%$query%'],
-      orderBy: 'indexed_date DESC',
+      orderBy: 'created_date DESC',
       limit: limit,
       offset: offset,
     );
@@ -77,13 +88,13 @@ class DatabaseHelper {
     final db = await database;
     return await db.query(
       'screenshots',
-      orderBy: 'indexed_date DESC',
+      orderBy: 'created_date DESC',
       limit: limit,
       offset: offset,
     );
   }
 
-  static Future<String?> getLastIndexedId() async {
+  static Future<String?> getLastId() async {
     final db = await database;
     final result = await db.rawQuery('SELECT MAX(id) as max_id FROM screenshots');
     if (result.isNotEmpty) {
@@ -91,6 +102,15 @@ class DatabaseHelper {
       return value != null ? value as String : null;
     }
     return null;
+  }
+  static Future<String?> getLastIndexedId() async {
+    final db = await database;
+    final result = await db.query('screenshots',
+        columns: ['id'],
+        orderBy: 'created_date DESC',
+        limit: 1
+    );
+    return result.isNotEmpty ? result.first['id'] as String : null;
   }
   
   static Future<bool> screenshotExists(String id) async {
@@ -148,7 +168,7 @@ class DatabaseHelper {
       SELECT s.* FROM screenshots s
       INNER JOIN image_tags t ON s.id = t.image_id
       WHERE t.tag_name = ?
-      ORDER BY s.indexed_date DESC
+      ORDER BY s.created_date DESC
     ''', [tagName]);
     return result;
   }

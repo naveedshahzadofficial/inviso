@@ -131,11 +131,22 @@ class ScreenshotController extends GetxController {
     
     await DatabaseHelper.insertScreenshot({
       'id': asset.id,
+      'title': asset.title,
       'path': file.path,
+      'sub_type': asset.subtype ?? 0,
+      'type_int': asset.typeInt ?? 0,
+      'duration': asset.duration ?? 0,
+      'latitude': asset.latitude,
+      'longitude': asset.longitude,
       'text_content': textContent,
+      'width': asset.width ?? 0,
+      'height': asset.height ?? 0,
+      'orientation': asset.orientation ?? 0,
+      'is_favorite': asset.isFavorite == true ? 1 : 0,
+      'relative_path': asset.relativePath,
+      'mime_type': asset.mimeType,
       'created_date': asset.createDateTime.millisecondsSinceEpoch,
       'modified_date': asset.modifiedDateTime.millisecondsSinceEpoch,
-      'indexed_date': DateTime.now().millisecondsSinceEpoch,
     });
   }
   
